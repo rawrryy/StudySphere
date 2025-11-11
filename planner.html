@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Planner — Student Study Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="planner-bg">
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <h1 class="brand">Study Planner</h1>
+      <nav class="main-nav">
+        <!-- make sure these files are in the same folder -->
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="reviewers.html" class="nav-link">Reviewers</a>
+        <a href="planner.html" class="nav-link active">Planner</a>
+        <a href="about.html" class="nav-link">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container planner-container">
+    <section class="card">
+      <h2>📅 Weekly School Schedule</h2>
+      <table class="schedule-table">
+        <caption>My Weekly School Schedule</caption>
+        <thead>
+          <tr>
+            <th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>8:00–8:30</td><td>Flag Ceremony</td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>8:30–9:00</td><td>English</td><td>Biology</td><td>English</td><td>English</td><td>Math Problem Solving</td></tr>
+          <tr><td>9:30–10:00</td><td colspan="5">Break</td></tr>
+          <tr><td>10:00–11:00</td><td>Math Problem Solving</td><td>Math Concepts</td><td>Values & Ethics</td><td>Math Concepts</td><td>Business Studies</td></tr>
+          <tr><td>11:00–12:00</td><td>Global Perspective</td><td>Business Studies</td><td>Library Time</td><td>Global Perspective</td><td>Global Perspective</td></tr>
+          <tr><td>12:00–1:00</td><td colspan="5">Lunch</td></tr>
+          <tr><td>1:00–2:00</td><td>Biology</td><td>Music</td><td>Business Studies</td><td>Biology</td><td>Computing</td></tr>
+          <tr><td>2:00–3:00</td><td>Values & Ethics</td><td>English</td><td>Aikido</td><td>Business Studies</td><td>Biology</td></tr>
+          <tr><td>3:00–4:00</td><td>Computing</td><td>Homeroom</td><td>Arts & Design</td><td>Design & Technology</td><td>Design & Technology</td></tr>
+          <tr><td>4:00–4:30</td><td>Homeroom</td><td>(Dismissed)</td><td>Homeroom</td><td>Homeroom</td><td>Homeroom</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>📝 Study Task Planner</h2>
+      <p>Add tasks you need to finish and mark them done when complete.</p>
+
+       <form id="taskForm">
+        <label for="subject">Subject</label>
+        <input id="subject" name="subject" type="text" placeholder="e.g. Biology" required>
+
+        <label for="task">Task</label>
+        <input id="task" name="task" type="text" placeholder="e.g. Review Chapter 5" required>
+
+        <label for="day">Day</label>
+        <select id="day" name="day">
+          <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option>
+        </select>
+
+        <button type="submit">Add Task</button>
+      </form>
+
+      <h3>Your Tasks</h3>
+      <ul id="taskList" class="task-list"></ul>
+    </section>
+ 
+      <div class="quote-box">
+      “They say the Arch has seen centuries. Let it see you next.”
+      </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Made by Alrey Bachicha, Year 10 | 1st Project in Computing</p>
+    </div>
+  </footer>
+
+  <script>
+    // Planner script with localStorage (persistent)
+    const form = document.getElementById('taskForm');
+    const taskList = document.getElementById('taskList');
+
+    // load tasks from localStorage and render
+    function loadTasks() {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      taskList.innerHTML = '';
+      tasks.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.className = t.done ? 'done' : '';
+        li.innerHTML = `
+          <div class="task-item">
+            <div><strong>${escapeHtml(t.subject)}</strong> — ${escapeHtml(t.task)} <span class="small">(${escapeHtml(t.day)})</span></div>
+            <div class="task-actions">
+              <button class="done-btn" data-i="${i}">${t.done ? 'Undo' : 'Done'}</button>
+              <button class="del-btn" data-i="${i}">Delete</button>
+            </div>
+          </div>
+        `;
+        taskList.appendChild(li);
+      });
+    }
+
+    // save array to localStorage and reload UI
+    function saveTasks(tasks) {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      loadTasks();
+    }
+
+    // escape small inputs to avoid accidental HTML injection
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // handle form submit
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const subject = document.getElementById('subject').value.trim();
+      const task = document.getElementById('task').value.trim();
+      const day = document.getElementById('day').value;
+      if (!subject || !task) return;
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      tasks.push({ subject, task, day, done: false });
+      saveTasks(tasks);
+      form.reset();
+    });
+
+    // delegate buttons for done/delete
+    taskList.addEventListener('click', (e) => {
+      const i = e.target.dataset.i;
+      if (i === undefined) return;
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+
+      if (e.target.classList.contains('done-btn')) {
+        tasks[i].done = !tasks[i].done;
+        saveTasks(tasks);
+      } else if (e.target.classList.contains('del-btn')) {
+        tasks.splice(i, 1);
+        saveTasks(tasks);
+      }
+    });
+
+    // initial render
+    loadTasks();
+  </script>
+</body>
+</html>
